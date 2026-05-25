@@ -28,7 +28,7 @@ Defers to the **agent-forge hub** for the knowledge base. Source of truth: `agen
 
 ## Workflow
 
-1. **Parse** — what does the tool do, what are the inputs/outputs, is it idempotent, what fails
+1. **Gather operational constraints (MANDATORY) and parse.** Before recommending tool design, confirm: **(a) call volume** (QPS for the tool, fan-out factor if parallel), **(b) latency budget** for tool calls (drives timeout values and retry policy), **(c) cost ceiling** (drives caching, batching, model-tier for tool execution). ASK ONE clarifying question if any are missing. Also extract: what the tool does, inputs/outputs, idempotency, failure modes.
 2. **Search** — `python3 .claude/skills/agent-forge/scripts/search.py "<query>" --domain tools`
 3. **Cross-check safety** — `--domain safety` for validation overlap
 4. **Framework specifics** — `--framework <name>` for tool registration patterns

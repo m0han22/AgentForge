@@ -28,7 +28,7 @@ Defers to the **agent-forge hub**. Source of truth: `agent-forge/knowledge/deplo
 
 ## Workflow
 
-1. **Parse** — scale (QPS, corpus size), latency budget, cost budget, ops capacity (managed vs self-host), deployment target (cloud, on-prem)
+1. **Gather operational constraints (MANDATORY) and parse.** Confirm: **(a) scale** (QPS, total queries/day, corpus size if RAG — drives vector DB tier, serving topology, caching), **(b) latency budget** (p95 target — drives sync vs async, streaming, model routing), **(c) cost ceiling** (per-query, per-month, or hard cap — drives prompt caching, model routing, batching aggressiveness). ASK ONE clarifying question if any are missing. Also extract: ops capacity (managed vs self-host), deployment target (cloud, on-prem, hybrid), regulatory/data residency constraints.
 2. **Search** — `--domain deployment` and `--domain cost`
 3. **Synthesize**
 

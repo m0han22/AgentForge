@@ -28,7 +28,7 @@ This skill defers to the **agent-forge hub** for the knowledge base and search. 
 
 ## Workflow
 
-1. **Parse the request** — extract task shape (known steps vs open-ended?), tool count, parallelism opportunity, latency budget, framework preference
+1. **Gather operational constraints (MANDATORY) and parse the request.** Before recommending, confirm: **(a) load / scale** (users, QPS, total queries/day), **(b) latency budget** (interactive / near-interactive / batch / specific p95), **(c) cost ceiling** (per-query / per-month / "minimize with hard cap"). If any of these three are missing from the user's message, ASK ONE focused clarifying question before proceeding. These determine framework, model tier, sub-agent vs monolithic, and sync vs async. Recommending without them is guessing. Also extract task shape (known steps vs open-ended?), tool count, parallelism opportunity, framework preference.
 2. **Search** — `python3 .claude/skills/agent-forge/scripts/search.py "<query>" --domain architecture` and `--domain loop`
 3. **Pick framework** — `python3 .claude/skills/agent-forge/scripts/search.py "<query>" --framework <name>`
 4. **Synthesize** — use the output template below

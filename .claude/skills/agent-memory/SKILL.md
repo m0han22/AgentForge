@@ -26,7 +26,7 @@ Defers to the **agent-forge hub**. Source of truth: `agent-forge/knowledge/memor
 
 ## Workflow
 
-1. **Parse** — single-session vs cross-session memory? What needs to persist? How long is a typical conversation?
+1. **Gather operational constraints (MANDATORY) and parse.** Before recommending memory architecture, confirm: **(a) scale** (concurrent users, total conversation count, avg conversation length), **(b) latency budget** (drives sync-summarization vs async, drives memory-retrieval p95), **(c) cost ceiling** (summarization LLM calls add up — drives model tier and cadence). ASK ONE clarifying question if any are missing. Also extract: single-session vs cross-session memory, what needs to persist, typical conversation length.
 2. **Search** — `--domain memory`
 3. **Framework specifics** — LangGraph for checkpointing, otherwise SDK + DB
 4. **Synthesize**

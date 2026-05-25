@@ -316,15 +316,23 @@ Use this skill when the user requests any of the following:
 
 Follow this workflow:
 
-### Step 1 — Analyze the request
+### Step 1 — Gather operational constraints (MANDATORY) and parse the request
 
-Extract structured constraints from the user's message:
+**Before recommending anything, confirm these three operational constraints.** They drive most architecture decisions — framework choice, model tier, caching strategy, sync vs async, vector DB scale, sub-agent vs monolithic. Recommending without them is guessing.
+
+If the user did NOT state any of the three, **ASK ONE focused clarifying question** before proceeding. Do not assume.
+
+1. **Load / scale** — concurrent users, queries per second, queries per day, corpus size (if RAG). "Hundreds of users hitting it during business hours" is enough; "5 of us internally" is enough. Just need a tier.
+2. **Latency budget** — interactive (<2s), near-interactive (<10s), batch/async (minutes ok), or a specific p95 target. If a user is waiting at a UI, say "interactive".
+3. **Cost ceiling** — per-query, per-user, per-month, or "minimize with hard cap". If user has no number, ask for an upper bound they would be uncomfortable exceeding.
+
+Then extract structured signals (these may be inferred from the message):
 
 - **Problem type**: agent (single/multi), RAG, tool integration, eval setup, deployment, debugging
 - **Domain(s)**: which of the 10 priority categories apply (often 2–3 at once)
 - **User level**: beginner (plain English) vs experienced (uses jargon like "RRF fusion", "ToT")
 - **Framework preference**: if user named one, use it; else pick in Step 4
-- **Constraints**: latency budget, scale (queries/day, docs in corpus), cost ceiling, LLM choice, data sensitivity, deployment target
+- **Other context**: LLM choice, data type/volume/sensitivity, deployment target
 
 ### Step 2 — Generate Full Recommendation (REQUIRED)
 

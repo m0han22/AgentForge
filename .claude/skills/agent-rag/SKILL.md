@@ -28,7 +28,7 @@ Defers to the **agent-forge hub** for the knowledge base. Source of truth: `agen
 
 ## Workflow
 
-1. **Parse** — corpus size, doc type (PDF, wiki, code, mixed), query intent (factual vs conceptual), latency/cost budget, LLM, framework preference
+1. **Gather operational constraints (MANDATORY) and parse.** Before recommending, confirm: **(a) load / scale** (QPS, total queries/day, **corpus size** — critical for vector DB choice), **(b) latency budget** (interactive / near-interactive / batch), **(c) cost ceiling**. ASK ONE clarifying question if any are missing. These determine vector DB (pgvector vs Qdrant vs Pinecone), rerank vs no-rerank, cache strategy, and embedding model tier. Also extract: doc type (PDF, wiki, code, mixed), query intent (factual vs conceptual), LLM, framework preference.
 2. **Search** — `python3 .claude/skills/agent-forge/scripts/search.py "<query>" --domain retrieval`
 3. **Vector DB pick** — `--domain deployment` for storage layer
 4. **Framework pick** — `--framework llamaindex` (RAG-first default) or `--framework langchain`

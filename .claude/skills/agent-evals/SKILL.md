@@ -27,7 +27,7 @@ Defers to the **agent-forge hub**. Source of truth: `agent-forge/knowledge/evals
 
 ## Workflow
 
-1. **Parse** — agent type (RAG vs agent vs both), current state (no eval yet vs scaling existing), main quality concern (hallucination, latency, cost)
+1. **Gather operational constraints (MANDATORY) and parse.** Before designing the eval, confirm: **(a) production load** (drives how much real data is available for golden set, drives sampling rate for human spot-check), **(b) latency budget** (eval can't slow prod past this — drives async vs inline eval), **(c) cost ceiling** (LLM-as-judge calls cost real money at scale — drives judge model tier and eval cadence). ASK ONE clarifying question if any are missing. Also extract: agent type (RAG vs agent vs both), current state (no eval yet vs scaling existing), main quality concern (hallucination, latency, cost).
 2. **Search** — `--domain evals`
 3. **Synthesize**
 
