@@ -4,6 +4,8 @@
 [![Made for Claude Code](https://img.shields.io/badge/Made%20for-Claude%20Code-orange)](https://claude.com/claude-code)
 [![Skills](https://img.shields.io/badge/Skills-7-blue)](.claude/skills)
 [![Patterns](https://img.shields.io/badge/Patterns-30%2B-green)](.claude/skills/agent-forge/knowledge)
+[![Scaffolds](https://img.shields.io/badge/Scaffolds-6-purple)](scaffolds)
+[![CLI](https://img.shields.io/badge/CLI-npx%20agent--forge-black)](cli.js)
 
 > Opinionated Claude Code skill suite for building production AI agents and RAG systems.
 
@@ -71,58 +73,92 @@ context-recall (Ragas) and citation-precision. Ship when both > 0.85.
 - 8 framework profiles (Claude Agent SDK, LangGraph, LangChain, LlamaIndex, OpenAI Agents SDK, Pydantic AI, CrewAI, Deep Agents)
 - Cross-cutting anti-patterns
 
-**Search engine** at `.claude/skills/agent-forge/scripts/search.py`:
-- BM25 ranking over markdown frontmatter + body
-- Three modes: `--recommend` (multi-domain), `--domain <name>`, `--framework <name>`
-- Optional `--persist` to save recommendations to `agent-system/MASTER.md` for cross-session reuse
-- Falls back gracefully if `rank_bm25` or `pyyaml` aren't installed
+**Scripts** at `.claude/skills/agent-forge/scripts/`:
+- `search.py` — BM25 ranking over knowledge/ with `--recommend`, `--domain`, `--framework`, `--persist` modes
+- `recommend.py` — wraps search.py with framework inference and scaffold pointers; emits a complete recommendation
+- `eval_harness.py` — generates `golden_set.csv` + Ragas eval script + CI gate for RAG / agent / tools tasks
+- Search falls back gracefully if `rank_bm25` or `pyyaml` aren't installed
+
+**Runnable scaffolds** at `scaffolds/` — minimal but real starter projects:
+- `claude-agent-sdk/` — ReAct agent with budgets + prompt caching
+- `langgraph/` — Stateful plan/execute/reason graph with checkpointing
+- `llamaindex/` — RAG: hierarchical chunking + hybrid + Cohere rerank, with citations
+- `openai-agents/` — Triage agent with typed handoff to specialist
+- `pydantic-ai/` — Type-safe agent with Pydantic-structured output + DI
+- `crewai/` — Sequential researcher + writer crew
+
+**CLI installer** at `cli.js` — `npx agent-forge install <platform>` for Claude Code, Cursor, Windsurf, or GitHub Copilot.
 
 ---
 
 ## Quick start
 
+### Install via CLI (recommended)
+
 ```bash
-# Clone
-git clone https://github.com/m0han22/AgentForge.git
+# In your project directory:
+npx agent-forge install claude-code            # → .claude/skills/
 
-# Install at user-level (available across all your projects)
-cp -r AgentForge/.claude/skills/* ~/.claude/skills/
+# Or for Cursor / Windsurf / Copilot:
+npx agent-forge install cursor                 # → .cursor/rules/agent-forge.mdc
+npx agent-forge install windsurf               # → .windsurf/rules/agent-forge.md
+npx agent-forge install copilot                # → .github/copilot-instructions.md
 
-# Or project-level (this project only)
-cp -r AgentForge/.claude/skills/* /path/to/your/project/.claude/skills/
-
-# Install search dependencies (optional but recommended)
-pip install rank-bm25 pyyaml
+# Install at user-level (available across all projects):
+npx agent-forge install claude-code --dir ~
 ```
 
-Then in Claude Code, just describe what you're building:
+### Or clone + copy
+
+```bash
+git clone https://github.com/m0han22/AgentForge.git
+cp -r AgentForge/.claude/skills/* ~/.claude/skills/
+pip install rank-bm25 pyyaml  # optional; for the BM25 search engine
+```
+
+Then in Claude Code (or your editor), just describe what you're building:
 
 > "Help me design an agent that reviews pull requests."
 
-The skill auto-activates on agentic / RAG keywords, asks for load / latency / cost if missing, then delivers a prescriptive recommendation.
+The skill auto-activates on agentic / RAG keywords, asks for load / latency / cost if missing, then delivers a prescriptive recommendation pointing to a runnable scaffold.
 
 ---
 
-## Direct CLI use
+## Direct CLI use (Python scripts)
 
-You can also drive the search engine yourself:
+You can drive the knowledge tools yourself:
 
 ```bash
-# Full multi-domain recommendation
-python3 .claude/skills/agent-forge/scripts/search.py \
-  "RAG 50k engineering wiki Claude" --recommend -p "WikiBot"
+SCRIPTS=.claude/skills/agent-forge/scripts
+
+# Synthesized recommendation (search + framework + scaffold pointer)
+python3 $SCRIPTS/recommend.py "RAG over 50k engineering wiki Claude" --framework llamaindex
+
+# Raw BM25 search across all domains
+python3 $SCRIPTS/search.py "hybrid search rerank" --recommend
 
 # Drill into one domain
-python3 .claude/skills/agent-forge/scripts/search.py \
-  "hybrid search rerank" --domain retrieval
+python3 $SCRIPTS/search.py "infinite loop budget" --domain loop
 
 # Framework-specific guidance
-python3 .claude/skills/agent-forge/scripts/search.py \
-  "tool use mcp" --framework claude-agent-sdk
+python3 $SCRIPTS/search.py "tool use mcp" --framework claude-agent-sdk
 
-# Persist for cross-session reuse
-python3 .claude/skills/agent-forge/scripts/search.py \
-  "agentic coding assistant" --recommend --persist -p "CodeBot"
+# Generate an eval harness for your task (RAG / agent / tools)
+python3 $SCRIPTS/eval_harness.py --task rag        # → ./eval/{golden_set.csv, eval.py, ci_gate.sh}
+python3 $SCRIPTS/eval_harness.py --task agent
+python3 $SCRIPTS/eval_harness.py --task tools
+
+# Persist a recommendation for cross-session reuse
+python3 $SCRIPTS/search.py "agentic coding assistant" --recommend --persist -p "CodeBot"
+```
+
+### Try a scaffold
+
+```bash
+cd scaffolds/claude-agent-sdk
+pip install -r requirements.txt
+cp .env.example .env  # add ANTHROPIC_API_KEY
+python main.py "What is the capital of France?"
 ```
 
 ---
@@ -183,43 +219,60 @@ EOF
 AgentForge/
 ├── LICENSE
 ├── README.md
-└── .claude/
-    └── skills/
-        ├── agent-forge/                       # HUB SKILL
-        │   ├── SKILL.md                       # router + embedded Quick Reference
-        │   ├── knowledge/                     # source of truth
-        │   │   ├── safety/                    # prompt injection, validation, audit
-        │   │   ├── tools/                     # schemas, MCP, error handling
-        │   │   ├── loop/                      # budgets, infinite-loop guards
-        │   │   ├── retrieval/                 # RAG patterns
-        │   │   ├── evals/                     # Ragas, golden sets, judge
-        │   │   ├── cost/                      # caching, routing
-        │   │   ├── memory/                    # summarization, episodic
-        │   │   ├── architecture/              # ReAct, plan-execute, multi-agent…
-        │   │   ├── reasoning/                 # CoT, reflection, ToT (WIP)
-        │   │   ├── prompt/                    # system prompt, tool descriptions
-        │   │   ├── deployment/                # vector DBs, serving, observability
-        │   │   ├── frameworks/                # one profile per framework
-        │   │   └── anti-patterns/             # cross-cutting don'ts
-        │   └── scripts/
-        │       └── search.py                  # BM25 ranking + CLI
-        ├── agent-architectures/SKILL.md
-        ├── agent-rag/SKILL.md
-        ├── agent-tools/SKILL.md
-        ├── agent-memory/SKILL.md
-        ├── agent-evals/SKILL.md
-        └── agent-deployment/SKILL.md
+├── package.json                         # npm metadata for `npx agent-forge`
+├── cli.js                               # CLI installer (claude-code, cursor, windsurf, copilot)
+├── .gitignore
+├── .claude/
+│   └── skills/
+│       ├── agent-forge/                 # HUB SKILL
+│       │   ├── SKILL.md                 # router + embedded Quick Reference
+│       │   ├── knowledge/               # 10 domains + frameworks + anti-patterns
+│       │   │   ├── safety/
+│       │   │   ├── tools/
+│       │   │   ├── loop/
+│       │   │   ├── retrieval/
+│       │   │   ├── evals/
+│       │   │   ├── cost/
+│       │   │   ├── memory/
+│       │   │   ├── architecture/        # 10 pattern docs
+│       │   │   ├── reasoning/           # WIP
+│       │   │   ├── prompt/
+│       │   │   ├── deployment/
+│       │   │   ├── frameworks/          # 8 profiles
+│       │   │   └── anti-patterns/
+│       │   └── scripts/
+│       │       ├── search.py            # BM25 ranking + CLI
+│       │       ├── recommend.py         # search + framework + scaffold synthesis
+│       │       └── eval_harness.py      # generate golden_set + eval.py + CI gate
+│       ├── agent-architectures/SKILL.md
+│       ├── agent-rag/SKILL.md
+│       ├── agent-tools/SKILL.md
+│       ├── agent-memory/SKILL.md
+│       ├── agent-evals/SKILL.md
+│       └── agent-deployment/SKILL.md
+├── scaffolds/                           # 6 runnable starter projects
+│   ├── claude-agent-sdk/
+│   ├── langgraph/
+│   ├── llamaindex/
+│   ├── openai-agents/
+│   ├── pydantic-ai/
+│   └── crewai/
+└── templates/                           # CLI installer source templates
+    ├── claude-code/
+    ├── cursor/
+    ├── windsurf/
+    └── copilot/
 ```
 
 ---
 
 ## Roadmap
 
-- Fill out `reasoning/` (CoT, reflection, ToT, self-critique) and grow `retrieval/`, `evals/`, `deployment/` past 1 pattern each
-- Scaffold directory — runnable starter projects per framework
-- `npx agent-forge install <platform>` CLI (Cursor, Windsurf, Copilot templates)
+- Fill out `reasoning/` (CoT, ToT, self-critique) and grow `retrieval/`, `evals/`, `deployment/` past 1 pattern each
+- Publish to npm (`npm publish` so `npx agent-forge` works without the GitHub clone)
 - Live dogfooding pass — verify auto-activation on real prompts; tune triggers
 - Contributing guide for adding patterns
+- Add a `scaffolds/deep-agents/` starter once Deep Agents stabilizes
 
 ---
 

@@ -1,0 +1,50 @@
+{
+  "name": "agent-forge-skill",
+  "version": "0.1.0",
+  "description": "Opinionated Claude Code skill suite for building production AI agents and RAG systems. Installs into Claude Code, Cursor, Windsurf, or GitHub Copilot.",
+  "bin": {
+    "agent-forge": "./cli.js"
+  },
+  "main": "cli.js",
+  "scripts": {
+    "test": "node cli.js list"
+  },
+  "files": [
+    "cli.js",
+    "README.md",
+    "LICENSE",
+    ".claude/**",
+    "templates/**",
+    "scaffolds/**"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "skill",
+    "agent",
+    "agentic",
+    "rag",
+    "ai",
+    "llm",
+    "langchain",
+    "langgraph",
+    "llamaindex",
+    "cursor",
+    "windsurf",
+    "copilot",
+    "mcp"
+  ],
+  "author": "Sai Mohan Kesapragada",
+  "license": "MIT",
+  "homepage": "https://github.com/m0han22/AgentForge",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/m0han22/AgentForge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/m0han22/AgentForge/issues"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
